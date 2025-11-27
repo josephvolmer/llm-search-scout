@@ -1,0 +1,148 @@
+# SearXNG Configuration - Optimized for LLM consumption
+use_default_settings: true
+
+general:
+  debug: false
+  instance_name: "LLM Search Engine"
+
+search:
+  safe_search: 0
+  default_lang: "en"
+  formats:
+    - html
+    - json
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "change-this-to-a-random-secret-key"
+  limiter: false
+  image_proxy: false
+
+ui:
+  static_use_hash: true
+  default_locale: "en"
+  default_theme: simple
+
+# Enable only relevant, high-quality engines for LLM use
+engines:
+  # General Web Search
+  - name: google
+    engine: google
+    shortcut: go
+    disabled: false
+
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    disabled: false
+
+  - name: bing
+    engine: bing
+    shortcut: bi
+    disabled: false
+
+  - name: brave
+    engine: brave
+    shortcut: br
+    disabled: false
+
+  # Academic & Research
+  - name: google scholar
+    engine: google_scholar
+    shortcut: gs
+    disabled: false
+
+  - name: arxiv
+    engine: arxiv
+    shortcut: arx
+    disabled: false
+
+  - name: pubmed
+    engine: pubmed
+    shortcut: pub
+    disabled: false
+
+  - name: semantic scholar
+    engine: semantic_scholar
+    shortcut: se
+    disabled: false
+
+  # Documentation & Code
+  - name: github
+    engine: github
+    shortcut: gh
+    disabled: false
+
+  - name: stackoverflow
+    engine: stackoverflow
+    shortcut: so
+    disabled: false
+
+  - name: mdn
+    engine: mdn
+    shortcut: mdn
+    disabled: false
+
+  # News
+  - name: google news
+    engine: google_news
+    shortcut: gn
+    disabled: false
+
+  - name: reddit
+    engine: reddit
+    shortcut: re
+    disabled: false
+
+  # Media
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    disabled: false
+
+  - name: wikidata
+    engine: wikidata
+    shortcut: wd
+    disabled: false
+
+  # Disable image/video/music engines (not useful for LLMs)
+  - name: google images
+    engine: google_images
+    disabled: true
+
+  - name: youtube
+    engine: youtube
+    disabled: true
+
+  - name: spotify
+    engine: spotify
+    disabled: true
+
+# Outgoing request configuration
+outgoing:
+  request_timeout: 10.0  # seconds
+  max_request_timeout: 15.0
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true
+
+# Disable features not needed for API use
+enabled_plugins:
+  - 'Hash plugin'
+  - 'Self Information'
+  - 'Tracker URL remover'
+  - 'Open Access DOI rewrite'
+
+# Reduce HTML processing overhead
+doi_resolvers:
+  oadoi.org: 'https://oadoi.org/'
+  doi.org: 'https://doi.org/'
+
+# Performance optimizations
+redis:
+  url: false  # Can enable Redis for caching if needed
+
+# Rate limiting (disabled, handled by API layer)
+limiter:
+  enabled: false

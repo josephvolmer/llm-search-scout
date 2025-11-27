@@ -1,0 +1,28 @@
+services:
+  llm-search:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm-search
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEYS=${API_KEYS}
+      - SEARXNG_URL=http://localhost:8080
+      - SEARXNG_SECRET=${SEARXNG_SECRET_KEY:-change-this-secret-key}
+      - MAX_RESULTS=${MAX_RESULTS:-50}
+      - DEFAULT_RESULTS=${DEFAULT_RESULTS:-10}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-60}
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-5000}
+      - EXTRACT_TIMEOUT_SECONDS=${EXTRACT_TIMEOUT_SECONDS:-10}
+      - API_HOST=${API_HOST:-0.0.0.0}
+      - API_PORT=${API_PORT:-8000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
