@@ -90,9 +90,24 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - API_KEYS=${API_KEYS}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Required
+      - API_KEYS=${API_KEYS:-demo-key-change-this-in-production}
+      - SEARXNG_SECRET=${SEARXNG_SECRET_KEY:-change-this-to-a-random-secret-key}
+      - SEARXNG_URL=http://localhost:8080
+
+      # Optional: AI Features
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+
+      # Optional: Configuration
+      - MAX_RESULTS=${MAX_RESULTS:-50}
+      - DEFAULT_RESULTS=${DEFAULT_RESULTS:-10}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-60}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 ```
 
 ## 🔍 Usage Examples
@@ -283,11 +298,20 @@ curl http://localhost:8000/health
 docker exec llm-search curl http://localhost:8080/search?q=test&format=json
 ```
 
+### "Not Found" errors
+Make sure you're using the correct endpoint paths:
+- ✅ Correct: `GET /api/v1/search?q=query`
+- ❌ Wrong: `POST /search` or `GET /search`
+
+All search endpoints are under `/api/v1/` and use GET requests with query parameters.
+
 ### No search results
 Check SearXNG logs:
 ```bash
 docker exec llm-search cat /var/log/supervisor/searxng-stderr.log
 ```
+
+Note: Some SearXNG engine warnings (DuckDuckGo CAPTCHA, Startpage errors) are normal and don't affect functionality as the system uses multiple search engines.
 
 ## 📜 Third-Party Software
 
