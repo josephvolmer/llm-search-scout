@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  llm-search-scout:
+    image: josephvolmer/llm-search-scout:latest
+    container_name: llm-search
+    ports:
+      - "8000:8000"
+    environment:
+      # API Configuration
+      - API_KEYS=${API_KEYS:-demo-key-change-this-in-production}
+      - SEARXNG_SECRET_KEY=${SEARXNG_SECRET_KEY:-change-this-to-a-random-secret-key-now}
+
+      # Optional: AI Features (OpenAI)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+
+      # Optional: Search Configuration
+      - MAX_RESULTS=${MAX_RESULTS:-50}
+      - DEFAULT_RESULTS=${DEFAULT_RESULTS:-10}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-60}
+
+      # Optional: Content Extraction
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-5000}
+      - EXTRACT_TIMEOUT_SECONDS=${EXTRACT_TIMEOUT_SECONDS:-10}
+
+      # Optional: Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
