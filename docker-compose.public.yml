@@ -9,7 +9,7 @@ services:
     environment:
       # API Configuration
       - API_KEYS=${API_KEYS:-demo-key-change-this-in-production}
-      - SEARXNG_SECRET_KEY=${SEARXNG_SECRET_KEY:-change-this-to-a-random-secret-key-now}
+      - SEARXNG_SECRET=${SEARXNG_SECRET_KEY:-change-this-to-a-random-secret-key-now}
 
       # Optional: AI Features (OpenAI)
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
