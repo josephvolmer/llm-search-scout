@@ -20,7 +20,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /usr/local/searxng
 RUN mkdir -p /etc/searxng /var/log/searxng /app
 
-# Install SearXNG from GitHub (use master branch - most stable)
+# Install SearXNG from GitHub (AGPL-3.0 licensed - used unmodified)
+# Source: https://github.com/searxng/searxng
+# License: https://github.com/searxng/searxng/blob/master/LICENSE
 RUN git clone https://github.com/searxng/searxng.git /usr/local/searxng && \
     cd /usr/local/searxng && \
     pip install --no-cache-dir -r requirements.txt && \

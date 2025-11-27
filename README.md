@@ -430,7 +430,19 @@ Contributions welcome! Please feel free to submit issues and pull requests.
 
 ## License
 
-This project builds on top of [SearXNG](https://github.com/searxng/searxng) (AGPL-3.0).
+LLM Search Scout is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+
+### Third-Party Components
+
+This project uses SearXNG as a separate network service:
+- **SearXNG** is licensed under **AGPL-3.0** and is used unmodified as a containerized service
+- SearXNG source code: https://github.com/searxng/searxng
+- Our FastAPI wrapper and content extraction code are MIT-licensed
+- SearXNG runs as a separate process and is not modified by this project
+
+Additional dependencies and their licenses are listed in [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
+
+**Important**: While LLM Search Scout's code is MIT-licensed, SearXNG (which runs as a separate service in the Docker container) is AGPL-3.0. Users deploying this project must comply with SearXNG's AGPL-3.0 license for that component. Since SearXNG is not modified and runs as a separate network service, this does not impose AGPL requirements on your use of the LLM Search Scout API wrapper.
 
 ## Acknowledgments
 

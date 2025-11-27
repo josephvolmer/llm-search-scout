@@ -19,3 +19,31 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+THIRD-PARTY SOFTWARE
+
+This project uses the following third-party software:
+
+1. SearXNG (https://github.com/searxng/searxng)
+   License: AGPL-3.0
+   SearXNG is used as a separate network service and is not modified.
+   Users can obtain SearXNG source code at: https://github.com/searxng/searxng
+
+2. FastAPI (https://github.com/fastapi/fastapi)
+   License: MIT
+   Copyright (c) 2018 Sebastián Ramírez
+
+3. BeautifulSoup4
+   License: MIT
+
+4. lxml (https://github.com/lxml/lxml)
+   License: BSD-3-Clause
+
+5. readability-lxml (https://github.com/buriy/python-readability)
+   License: Apache 2.0
+
+6. Other Python dependencies - See api/requirements.txt
+
+See THIRD_PARTY_LICENSES file for complete license texts.
