@@ -67,7 +67,7 @@ LABEL com.llmsearchscout.component.searxng.path="/usr/local/searxng"
 LABEL com.llmsearchscout.component.searxng.modified="false"
 
 # Install ONLY runtime dependencies (Alpine packages)
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     libxml2 \
     libxslt \
     curl \
