@@ -23,12 +23,26 @@ RUN git clone --depth 1 https://github.com/searxng/searxng.git /usr/local/searxn
     cd /usr/local/searxng && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir . && \
-    # Remove .git directory to save space
-    rm -rf /usr/local/searxng/.git
+    # Remove unnecessary files to save space
+    rm -rf /usr/local/searxng/.git \
+           /usr/local/searxng/tests \
+           /usr/local/searxng/docs \
+           /usr/local/searxng/.github \
+           /usr/local/searxng/utils/standalone_searx.py \
+           /usr/local/searxng/*.md
 
 # Install API dependencies
 COPY api/requirements.txt /tmp/api-requirements.txt
-RUN pip install --no-cache-dir -r /tmp/api-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/api-requirements.txt && \
+    # Remove pip, setuptools, and wheel to save space (not needed at runtime)
+    pip uninstall -y pip setuptools wheel && \
+    # Remove Python cache files
+    find /usr/local/lib/python3.11 -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
+    find /usr/local/lib/python3.11 -type f -name '*.pyc' -delete && \
+    find /usr/local/lib/python3.11 -type f -name '*.pyo' -delete && \
+    # Remove test files from packages
+    find /usr/local/lib/python3.11/site-packages -type d -name tests -exec rm -rf {} + 2>/dev/null || true && \
+    find /usr/local/lib/python3.11/site-packages -type d -name test -exec rm -rf {} + 2>/dev/null || true
 
 ###############################################################################
 # Stage 2: Runtime - Minimal Alpine runtime image
@@ -67,12 +81,18 @@ RUN adduser -D -u 1000 appuser
 RUN mkdir -p /usr/local/searxng /etc/searxng /var/log/searxng /app /var/log/supervisor && \
     chown -R appuser:appuser /usr/local/searxng /etc/searxng /var/log/searxng /app /var/log/supervisor
 
-# Copy Python packages from builder
+# Copy Python packages from builder (pip already removed in builder)
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy SearXNG from builder (without .git)
+# Copy SearXNG from builder (without .git, tests, docs)
 COPY --from=builder --chown=appuser:appuser /usr/local/searxng /usr/local/searxng
+
+# Final cleanup: remove any remaining caches and unnecessary files
+RUN find /usr/local -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
+    find /usr/local -type f -name '*.pyc' -delete && \
+    find /usr/local -type f -name '*.pyo' -delete && \
+    rm -rf /root/.cache /tmp/* /var/cache/apk/*
 
 # Copy SearXNG settings
 COPY --chown=appuser:appuser searxng/settings.yml /etc/searxng/settings.yml
