@@ -67,12 +67,17 @@ LABEL com.llmsearchscout.component.searxng.path="/usr/local/searxng"
 LABEL com.llmsearchscout.component.searxng.modified="false"
 
 # Install ONLY runtime dependencies (Alpine packages)
-RUN apk update && apk add --no-cache \
-    libxml2 \
-    libxslt \
-    curl \
-    git \
-    supervisor
+# Using retries and explicit error handling for ARM64 emulation stability
+RUN set -ex && \
+    for i in 1 2 3; do \
+        apk update && apk add --no-cache \
+            libxml2 \
+            libxslt \
+            curl \
+            git \
+            supervisor \
+        && break || sleep 5; \
+    done
 
 # Create non-root user first (before copying files)
 RUN adduser -D -u 1000 appuser
