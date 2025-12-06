@@ -88,11 +88,13 @@ jobs:
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
           push-to-registry: true
 
-      - name: Update Docker Hub repository description
-        if: github.event_name != 'pull_request'
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: josephvolmer/llm-search-scout
-          readme-filepath: ./DOCKER_HUB_README.md
+      # Docker Hub README sync disabled due to API permission limitations
+      # To update: manually copy DOCKER_HUB_README.md to Docker Hub repository description
+      # - name: Update Docker Hub repository description
+      #   if: github.event_name != 'pull_request'
+      #   uses: peter-evans/dockerhub-description@v4
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #     repository: josephvolmer/llm-search-scout
+      #     readme-filepath: ./DOCKER_HUB_README.md
