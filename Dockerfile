@@ -3,6 +3,12 @@
 ###############################################################################
 FROM python:3.11-alpine AS builder
 
+# Workaround for QEMU ARM64 emulation busybox trigger issue
+# https://gitlab.alpinelinux.org/alpine/aports/-/issues/12406
+RUN mkdir -p /lib/apk/exec && \
+    echo '#!/bin/sh' > /lib/apk/exec/busybox-1.37.0-r29.trigger && \
+    chmod +x /lib/apk/exec/busybox-1.37.0-r29.trigger
+
 # Install build dependencies (Alpine packages)
 RUN apk add --no-cache \
     gcc \
@@ -48,6 +54,11 @@ RUN pip install --no-cache-dir -r /tmp/api-requirements.txt && \
 # Stage 2: Runtime - Minimal Alpine runtime image
 ###############################################################################
 FROM python:3.11-alpine
+
+# Workaround for QEMU ARM64 emulation busybox trigger issue
+RUN mkdir -p /lib/apk/exec && \
+    echo '#!/bin/sh' > /lib/apk/exec/busybox-1.37.0-r29.trigger && \
+    chmod +x /lib/apk/exec/busybox-1.37.0-r29.trigger
 
 # OCI Standard Labels for License Compliance
 LABEL org.opencontainers.image.title="LLM Search Scout"
