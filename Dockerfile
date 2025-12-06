@@ -1,19 +1,20 @@
 ###############################################################################
 # Stage 1: Builder - Install dependencies and build SearXNG
 ###############################################################################
-FROM python:3.11-slim AS builder
+FROM python:3.11-alpine AS builder
 
-# Install build dependencies (only in builder stage)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install build dependencies (Alpine packages)
+RUN apk add --no-cache \
     gcc \
     g++ \
+    musl-dev \
     libxml2-dev \
-    libxslt1-dev \
+    libxslt-dev \
     git \
-    build-essential \
+    make \
     libffi-dev \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+    openssl-dev \
+    linux-headers
 
 # Clone and install SearXNG (AGPL-3.0 licensed - used unmodified)
 # Source: https://github.com/searxng/searxng
@@ -30,9 +31,9 @@ COPY api/requirements.txt /tmp/api-requirements.txt
 RUN pip install --no-cache-dir -r /tmp/api-requirements.txt
 
 ###############################################################################
-# Stage 2: Runtime - Minimal runtime image
+# Stage 2: Runtime - Minimal Alpine runtime image
 ###############################################################################
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 # OCI Standard Labels for License Compliance
 LABEL org.opencontainers.image.title="LLM Search Scout"
@@ -51,17 +52,16 @@ LABEL com.llmsearchscout.component.searxng.source="https://github.com/searxng/se
 LABEL com.llmsearchscout.component.searxng.path="/usr/local/searxng"
 LABEL com.llmsearchscout.component.searxng.modified="false"
 
-# Install ONLY runtime dependencies (no build tools)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install ONLY runtime dependencies (Alpine packages)
+RUN apk add --no-cache \
     libxml2 \
-    libxslt1.1 \
+    libxslt \
     curl \
     git \
-    supervisor \
-    && rm -rf /var/lib/apt/lists/*
+    supervisor
 
 # Create non-root user first (before copying files)
-RUN useradd -m -u 1000 appuser
+RUN adduser -D -u 1000 appuser
 
 # Create directories with correct ownership
 RUN mkdir -p /usr/local/searxng /etc/searxng /var/log/searxng /app /var/log/supervisor && \
