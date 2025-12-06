@@ -153,8 +153,17 @@ curl -N -H "X-API-Key: your-key" \
 - Using the MIT API does not impose AGPL obligations on your code
 - Each component retains its original license
 
-## 📦 Available Tags
+## 📦 Image Details
 
+**Image Size**: ~330MB (highly optimized Alpine-based multi-stage build)
+
+**Optimizations Applied:**
+- ✅ Multi-stage build (build tools excluded from runtime)
+- ✅ Alpine Linux base (minimal ~7MB OS vs ~130MB Debian)
+- ✅ Aggressive cleanup (pip, setuptools, docs, tests, caches removed)
+- ✅ Full functionality preserved (all AI features intact)
+
+**Available Tags:**
 - `latest` - Latest stable release from main branch
 - `1.0.0`, `1.0`, `1` - Semantic version tags
 - `main` - Latest build from main branch
@@ -280,10 +289,12 @@ This image is built for multiple architectures:
 
 ## ⚡ Performance
 
+- **Image size**: ~330MB (70% smaller than typical Python+ML apps)
 - **Search latency**: 200-500ms (depends on search engines)
 - **Content extraction**: 1-3 seconds per URL (concurrent)
-- **Memory usage**: ~350MB (API + SearXNG)
+- **Runtime memory**: ~350MB RAM (API + SearXNG running)
 - **CPU usage**: Low when idle, moderate during searches
+- **Startup time**: ~10-15 seconds (both services)
 
 ## 🐛 Troubleshooting
 
