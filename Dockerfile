@@ -81,17 +81,30 @@ RUN adduser -D -u 1000 appuser
 RUN mkdir -p /usr/local/searxng /etc/searxng /var/log/searxng /app /var/log/supervisor && \
     chown -R appuser:appuser /usr/local/searxng /etc/searxng /var/log/searxng /app /var/log/supervisor
 
-# Copy Python packages from builder (pip already removed in builder)
+# Copy Python packages from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy SearXNG from builder (without .git, tests, docs)
 COPY --from=builder --chown=appuser:appuser /usr/local/searxng /usr/local/searxng
 
-# Final cleanup: remove any remaining caches and unnecessary files
-RUN find /usr/local -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
+# Aggressive cleanup: remove unnecessary files and packages
+RUN set -ex && \
+    # Remove pip, setuptools, wheel (copied before they were uninstalled in builder)
+    rm -rf /usr/local/lib/python3.11/site-packages/pip* \
+           /usr/local/lib/python3.11/site-packages/setuptools* \
+           /usr/local/lib/python3.11/site-packages/wheel* \
+           /usr/local/lib/python3.11/site-packages/_distutils_hack \
+           /usr/local/lib/python3.11/site-packages/pkg_resources && \
+    # Remove documentation files from packages
+    find /usr/local/lib/python3.11/site-packages -type f \( -name '*.txt' -o -name '*.rst' -o -name '*.md' \) -delete && \
+    # Remove examples and docs directories
+    find /usr/local/lib/python3.11/site-packages -type d \( -name 'examples' -o -name 'docs' -o -name 'doc' \) -exec rm -rf {} + 2>/dev/null || true && \
+    # Remove Python caches
+    find /usr/local -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
     find /usr/local -type f -name '*.pyc' -delete && \
     find /usr/local -type f -name '*.pyo' -delete && \
+    # Remove other caches
     rm -rf /root/.cache /tmp/* /var/cache/apk/*
 
 # Copy SearXNG settings
