@@ -1,3 +1,37 @@
+###############################################################################
+# Stage 1: Builder - Install dependencies and build SearXNG
+###############################################################################
+FROM python:3.11-slim AS builder
+
+# Install build dependencies (only in builder stage)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libxml2-dev \
+    libxslt1-dev \
+    git \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and install SearXNG (AGPL-3.0 licensed - used unmodified)
+# Source: https://github.com/searxng/searxng
+# License: https://github.com/searxng/searxng/blob/master/LICENSE
+RUN git clone --depth 1 https://github.com/searxng/searxng.git /usr/local/searxng && \
+    cd /usr/local/searxng && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir . && \
+    # Remove .git directory to save space
+    rm -rf /usr/local/searxng/.git
+
+# Install API dependencies
+COPY api/requirements.txt /tmp/api-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/api-requirements.txt
+
+###############################################################################
+# Stage 2: Runtime - Minimal runtime image
+###############################################################################
 FROM python:3.11-slim
 
 # OCI Standard Labels for License Compliance
@@ -17,44 +51,35 @@ LABEL com.llmsearchscout.component.searxng.source="https://github.com/searxng/se
 LABEL com.llmsearchscout.component.searxng.path="/usr/local/searxng"
 LABEL com.llmsearchscout.component.searxng.modified="false"
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    libxml2-dev \
-    libxslt1-dev \
+# Install ONLY runtime dependencies (no build tools)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libxml2 \
+    libxslt1.1 \
     curl \
-    wget \
     git \
     supervisor \
-    build-essential \
-    libffi-dev \
-    libssl-dev \
-    shellcheck \
     && rm -rf /var/lib/apt/lists/*
 
-# Create directories
-WORKDIR /usr/local/searxng
-RUN mkdir -p /etc/searxng /var/log/searxng /app
+# Create non-root user first (before copying files)
+RUN useradd -m -u 1000 appuser
 
-# Install SearXNG from GitHub (AGPL-3.0 licensed - used unmodified)
-# Source: https://github.com/searxng/searxng
-# License: https://github.com/searxng/searxng/blob/master/LICENSE
-RUN git clone https://github.com/searxng/searxng.git /usr/local/searxng && \
-    cd /usr/local/searxng && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir -e .
+# Create directories with correct ownership
+RUN mkdir -p /usr/local/searxng /etc/searxng /var/log/searxng /app /var/log/supervisor && \
+    chown -R appuser:appuser /usr/local/searxng /etc/searxng /var/log/searxng /app /var/log/supervisor
+
+# Copy Python packages from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy SearXNG from builder (without .git)
+COPY --from=builder --chown=appuser:appuser /usr/local/searxng /usr/local/searxng
 
 # Copy SearXNG settings
-COPY searxng/settings.yml /etc/searxng/settings.yml
-
-# Install API dependencies
-WORKDIR /app
-COPY api/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY --chown=appuser:appuser searxng/settings.yml /etc/searxng/settings.yml
 
 # Copy API code
-COPY api/ /app/
+WORKDIR /app
+COPY --chown=appuser:appuser api/ /app/
 
 # Copy license and legal files for compliance
 RUN mkdir -p /usr/local/share/licenses/llm-search-scout
@@ -62,16 +87,8 @@ COPY LICENSE /usr/local/share/licenses/llm-search-scout/LICENSE
 COPY THIRD_PARTY_LICENSES /usr/local/share/licenses/llm-search-scout/THIRD_PARTY_LICENSES
 COPY NOTICES.md /usr/local/share/licenses/llm-search-scout/NOTICES.md
 
-# Create supervisor config to run both services
-RUN mkdir -p /var/log/supervisor
+# Copy supervisor config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app && \
-    chown -R appuser:appuser /etc/searxng && \
-    chown -R appuser:appuser /var/log/searxng && \
-    chown -R appuser:appuser /usr/local/searxng
 
 # Expose API port (SearXNG runs internally on 8080)
 EXPOSE 8000
