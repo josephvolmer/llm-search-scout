@@ -75,3 +75,4 @@ static/temp/
 # Docker volumes and data
 data/
 volumes/
+git-push.sh
